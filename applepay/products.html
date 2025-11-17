@@ -30,6 +30,42 @@
     }
     #total { font-weight:bold; text-align:center; margin-top:10px; font-size:18px; }
     #status { text-align:center; margin-top:10px; font-weight:bold; }
+    #successOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    #successOverlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    #successOverlay .card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        text-align: center;
+        width: 320px;
+        animation: slideUp 0.35s ease;
+    }
+    #successOverlay .card .amount {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 10px 0 20px;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
 </style>
 </head>
 <body>
@@ -44,6 +80,12 @@
 
 <button id="applePayBtn" class="apple-pay-button" disabled></button>
 <div id="status"></div>
+<div id="successOverlay">
+    <div class="card">
+        <div>Payment Successful</div>
+        <div class="amount">$0.00</div>
+    </div>
+</div>
 
 <script>
 // --- Load merchant info ---
@@ -103,6 +145,8 @@ document.querySelectorAll("input[type=number]").forEach(i=>i.addEventListener("i
 // --- Apple Pay (sandbox) ---
 const applePayBtn = document.getElementById("applePayBtn");
 const statusEl = document.getElementById("status");
+const successOverlay = document.getElementById("successOverlay");
+const amountEl = successOverlay.querySelector(".amount");
 
 function canUseApplePay(){
     if(!window.ApplePaySession) return false;
@@ -130,8 +174,15 @@ function getPaymentRequest(cart,total){
     };
 }
 
+function showSuccessOverlay(amount){
+    amountEl.innerText = "$" + amount;
+    successOverlay.classList.add("visible");
+    setTimeout(()=> successOverlay.classList.remove("visible"), 3500);
+}
+
 function simulateSuccess(totalValue){
     statusEl.innerText = "Payment simulated: SUCCESS — $" + totalValue;
+    showSuccessOverlay(totalValue);
 }
 
 async function validateWithServer(validationURL){
@@ -180,12 +231,11 @@ async function onApplePayButtonClicked() {
     };
 
     session.onpaymentauthorized = event => {
-        // No real transaction — purely demo/sandbox.
         statusEl.innerText = "Authorizing sandbox payment…";
         setTimeout(()=>{
             session.completePayment(ApplePaySession.STATUS_SUCCESS);
             simulateSuccess(totalValue);
-        },600);
+        },4600);
     };
 
     session.oncancel = () => {
@@ -196,7 +246,7 @@ async function onApplePayButtonClicked() {
 }
 
 if(canUseApplePay()){
-    applePayBtn.disabled = true; // stays disabled until amount > 0
+    applePayBtn.disabled = true; // stays disabled until amount > 0 and products are selected
     applePayBtn.addEventListener("click", onApplePayButtonClicked);
 }else{
     applePayBtn.disabled = true;
