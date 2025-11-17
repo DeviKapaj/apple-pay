@@ -32,18 +32,6 @@
         <input id="iban" type="text" placeholder="DE12345678901234567890">
     </label>
 
-    <label>Merchant ID (sandbox)
-        <input id="merchantId" type="text" placeholder="merchant.com.your.sandbox" value="merchant.com.apdemo">
-    </label>
-
-    <label>Country Code
-        <input id="countryCode" type="text" placeholder="US" value="US">
-    </label>
-
-    <label>Currency Code
-        <input id="currencyCode" type="text" placeholder="USD" value="USD">
-    </label>
-
     <button onclick="createMerchant()">Create Merchant</button>
 </div>
 
@@ -52,17 +40,9 @@ function createMerchant() {
     const owner = document.getElementById("ownerName").value.trim();
     const store = document.getElementById("storeName").value.trim();
     const iban = document.getElementById("iban").value.trim();
-    const merchantId = document.getElementById("merchantId").value.trim();
-    const countryCode = document.getElementById("countryCode").value.trim() || "US";
-    const currencyCode = document.getElementById("currencyCode").value.trim() || "USD";
 
     if(!owner || !store) {
         alert("Please fill in owner and store name.");
-        return;
-    }
-
-    if(!merchantId){
-        alert("Enter the sandbox merchant ID you configured in Apple Developer.");
         return;
     }
 
@@ -70,12 +50,9 @@ function createMerchant() {
         ownerName: owner,
         storeName: store,
         iban: iban,
-        merchantId,
-        merchantIdentifier: merchantId,
-        countryCode,
-        currencyCode,
-        supportedNetworks: ["amex","discover","masterCard","visa"],
-        merchantCapabilities: ["supports3DS"]
+        merchantId: "merchant.com.apdemo",
+        merchantIdentifier: "merchant.com.apdemo",
+        country: "US",
     };
 
     // Save to localStorage for other pages
