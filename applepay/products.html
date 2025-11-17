@@ -114,6 +114,7 @@
 
     /* Apple Pay Button */
     .apple-pay-button {
+        appearance: none;
         -webkit-appearance: -apple-pay-button;
         -apple-pay-button-type: buy;
         -apple-pay-button-style: black;
@@ -218,7 +219,7 @@ document.getElementById("merchantPanel").innerHTML = `
 const products = [
     { id: 1, name:"Premium Coffee Beans 500g", price:27.5, img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=60" },
     { id: 2, name:"Espresso Capsules 10-pack", price:15.0, img:"https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&q=60" },
-    { id: 3, name:"Coffee Mug", price:9.99, img:"https://images.unsplash.com/photo-1556910103-1e6a5f7e0739?w=600&q=60" }
+    { id: 3, name:"Coffee Mug", price:9.99, img:"img/coffee-mug.webp" }
 ];
 
 const productsList = document.getElementById("productsList");
