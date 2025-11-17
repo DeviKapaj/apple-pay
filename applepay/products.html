@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Buy Products — Apple Pay Demo</title>
+<style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    h1 { text-align: center; }
+    .merchant { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; max-width: 600px; margin:auto; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+    .product { display: flex; gap: 15px; align-items:center; background:#fff; padding:12px; margin-bottom:10px; border-radius:8px; max-width:600px; margin:auto; }
+    .product img { width:80px; height:80px; object-fit:cover; border-radius:8px; }
+    .product-info { flex:1; }
+    input[type=number] { width:50px; padding:4px; }
+    button { background:#0369a1; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-size:16px; margin-top:15px; display:block; margin:auto; }
+    #total { font-weight:bold; text-align:center; margin-top:10px; font-size:18px; }
+    #status { text-align:center; margin-top:10px; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<h1>Products — Buy with Apple Pay</h1>
+
+<div id="merchantPanel" class="merchant"></div>
+
+<div id="productsList"></div>
+
+<div id="total">Total: $0.00</div>
+
+<button id="applePayBtn" disabled>Buy with Apple Pay</button>
+<div id="status"></div>
+
+<script>
+// --- Load merchant info ---
+const merchant = JSON.parse(localStorage.getItem("merchant")) || null;
+if(!merchant){
+    alert("No merchant found! Go back to create-merchant.html first.");
+    window.location.href = "create-merchant.html";
+}
+
+document.getElementById("merchantPanel").innerHTML = `
+    <div><strong>Store:</strong> ${merchant.storeName}</div>
+    <div><strong>Owner:</strong> ${merchant.ownerName}</div>
+    <div><strong>IBAN:</strong> ${merchant.iban || "N/A"}</div>
+`;
+
+// --- Sample products ---
+const products = [
+    { id: 1, name:"Premium Coffee Beans 500g", price:27.5, img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=60" },
+    { id: 2, name:"Espresso Capsules 10-pack", price:15.0, img:"https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&q=60" },
+    { id: 3, name:"Coffee Mug", price:9.99, img:"https://images.unsplash.com/photo-1556910103-1e6a5f7e0739?w=600&q=60" }
+];
+
+// --- Render products ---
+const productsList = document.getElementById("productsList");
+products.forEach(p=>{
+    const div = document.createElement("div");
+    div.className="product";
+    div.innerHTML = `
+        <img src="${p.img}" alt="${p.name}">
+        <div class="product-info">
+            <div>${p.name}</div>
+            <div>Price: $${p.price.toFixed(2)}</div>
+            <div>Qty: <input type="number" min="0" value="0" data-id="${p.id}"></div>
+        </div>
+    `;
+    productsList.appendChild(div);
+});
+
+// --- Update total ---
+function updateTotal(){
+    const cart = [];
+    let total = 0;
+    document.querySelectorAll("input[type=number]").forEach(input=>{
+        const qty = parseInt(input.value) || 0;
+        if(qty>0){
+            const prod = products.find(p=>p.id==input.dataset.id);
+            cart.push({...prod, qty});
+            total += prod.price * qty;
+        }
+    });
+    localStorage.setItem("cart", JSON.stringify(cart));
+    document.getElementById("total").innerText = "Total: $" + total.toFixed(2);
+    document.getElementById("applePayBtn").disabled = total <= 0;
+}
+document.querySelectorAll("input[type=number]").forEach(i=>i.addEventListener("input", updateTotal));
+
+// --- Apple Pay simplified ---
+async function validateMerchant(){
+    return {
+        epochTimestamp: Date.now(),
+        signature: "demo-signature",
+        merchantSessionIdentifier: "demo-session"
+    };
+}
+
+async function onApplePayButtonClicked() {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    if(cart.length===0){ alert("Select at least one product"); return; }
+
+    const totalValue = cart.reduce((sum,p)=>sum+p.price*p.qty,0).toFixed(2);
+
+    if(!window.PaymentRequest){
+        alert("PaymentRequest API not supported. Demo only.");
+        return;
+    }
+
+    const paymentMethodData = [{
+        supportedMethods: "https://apple.com/apple-pay",
+        data: {
+            version: 3,
+            merchantIdentifier: merchant.merchantIdentifier,
+            merchantCapabilities: ["supports3DS"],
+            supportedNetworks: ["amex","discover","masterCard","visa"],
+            countryCode: "US"
+        }
+    }];
+
+    const paymentDetails = {
+        total: { label: merchant.storeName, amount: { value: totalValue, currency:"USD" } }
+    };
+
+    const request = new PaymentRequest(paymentMethodData, paymentDetails);
+
+    request.onmerchantvalidation = event => event.complete(validateMerchant());
+
+    try{
+        const response = await request.show();
+        await response.complete("success");
+        document.getElementById("status").innerHTML = "Payment simulated: SUCCESS — $" + totalValue;
+    }catch(e){
+        document.getElementById("status").innerHTML = "Payment failed: " + (e.message||e);
+    }
+}
+
+document.getElementById("applePayBtn").addEventListener("click", onApplePayButtonClicked);
+
+</script>
+</body>
+</html>

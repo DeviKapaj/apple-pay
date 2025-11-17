@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create Merchant</title>
+    <style>
+        body { font-family: Arial; padding: 40px; background: #f4f4f4; }
+        .box {
+            background: white; padding: 25px; border-radius: 10px;
+            max-width: 450px; margin: auto; box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        input { width: 100%; padding: 8px; margin: 6px 0 12px 0; border-radius: 6px; border: 1px solid #ccc; }
+        button {
+            background: black; color: white; padding: 10px 20px;
+            border: none; border-radius: 8px; cursor: pointer; font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h1>Create Merchant</h1>
+
+    <label>Owner Name
+        <input id="ownerName" type="text" placeholder="Your full name" value="Devis Kapaj">
+    </label>
+
+    <label>Store Name
+        <input id="storeName" type="text" placeholder="My Coffee Shop" value="Devis Coffee Shop">
+    </label>
+
+    <label>IBAN (optional for demo)
+        <input id="iban" type="text" placeholder="DE12345678901234567890">
+    </label>
+
+    <button onclick="createMerchant()">Create Merchant</button>
+</div>
+
+<script>
+function createMerchant() {
+    const owner = document.getElementById("ownerName").value.trim();
+    const store = document.getElementById("storeName").value.trim();
+    const iban = document.getElementById("iban").value.trim();
+
+    if(!owner || !store) {
+        alert("Please fill in owner and store name.");
+        return;
+    }
+
+    const merchant = {
+        ownerName: owner,
+        storeName: store,
+        iban: iban,
+        merchantId: "merchant.com.apdemo",
+        merchantIdentifier: "merchant.com.apdemo",
+        country: "US",
+    };
+
+    // Save to localStorage for other pages
+    localStorage.setItem("merchant", JSON.stringify(merchant));
+
+    alert("Merchant created successfully!\n\nMerchant ID: " + merchant.merchantId);
+
+    // Redirect to products page
+    window.location.href = "products.html";
+}
+</script>
+</body>
+</html>
